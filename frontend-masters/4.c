@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
-
+#include <stdlib.h>
 // 👉 First, build and run the program.
 //
 // To do this, make sure you're in the `exercises` directory, and then run:
@@ -52,18 +52,41 @@ char *to_path(char *req) {
 
 void print_file(const char *path) {
     int fd = open(path, O_RDONLY);
+
+    if(fd == -1){
+        return;
+    }
+
     struct stat metadata;
-    fstat(fd, &metadata);
+    if(fstat(fd, &metadata) == -1 ){
+        close(fd);
+        return NULL;
+    }
 
     // 👉 Change this to `char *` and malloc(). (malloc comes from <stdlib.h>)
     //    Hint 1: Don't forget to handle the case where malloc returns NULL!
     //    Hint 2: Don't forget to `free(buf)` later, to prevent memory leaks.
-    char buf[metadata.st_size + 1];
+    
+    char *buf = malloc(metadata.st_size + 1);
+
+    if(buf == NULL){        
+        close(fd);
+        return;
+    }
+
 
     ssize_t bytes_read = read(fd, buf, metadata.st_size);
+
+    if(bytes_read == -1){
+        free(buf);
+        close(fd);
+        return;
+    }
+
     buf[bytes_read] = '\0';
     printf("\n%s contents:\n\n%s\n", path, buf);
 
+    free(buf);
     close(fd);
 
     // 👉 Go back and add error handling for all the cases above where errors could happen.

@@ -7,47 +7,62 @@
 //
 // gcc -o app3 3.c && ./app3
 
-const char* DEFAULT_FILE = "index.html";
+const char *DEFAULT_FILE = "index.html";
 
-char *to_path(char *req) {
+char *to_path(char *req)
+{
     char *start, *end;
 
+    if(strlen(req) <= strlen(DEFAULT_FILE)){
+        return NULL;
+    }
+
     // Advance `start` to the first space
-    for (start = req; start[0] != ' '; start++) {
-        if (!start[0]) {
+    for (start = req; start[0] != ' '; start++)
+    {
+        if (!start[0])
+        {
             return NULL;
         }
     }
 
     start++; // Skip over the space
 
+    if (start[0] == '/')
+    {
+        start++;
+    }
+
     // Advance `end` to the second space
-    for (end = start; end[0] != ' '; end++) {
-        if (!end[0]) {
+    for (end = start; end[0] != ' '; end++)
+    {
+        if (!end[0])
+        {
             return NULL;
         }
     }
 
     // Ensure there's a '/' right before where we're about to copy in "index.html"
-    if (end[-1] == '/') {
-        end--; // We end in a slash, e.g. "/blog/" - so just move `end` to that slash.
-    } else {
+    if (end[-1] != '/')
+    {        
         end[0] = '/'; // We don't end in a slash, so write one.
-    }
+        end++;
+    }    
 
     // Copy in "index.html", overwriting whatever was there in the request string.
     memcpy(
         // 👉 Try refactoring out this + 1 by modifying the `if/else` above.
-        end + 1,
+        end,
         DEFAULT_FILE,
         // 👉 Try removing the +1 here. Re-run to see what happens, but first try to guess!
-        strlen(DEFAULT_FILE) + 1
-    );
+        strlen(DEFAULT_FILE) + 1);
 
     return start;
 }
 
-int main() {
+int main()
+{
+    
     // 👉 These three don't currently trim off the leading '/' - modify to_path to fix them!
     char req1[] = "GET /blog HTTP/1.1\nHost: example.com";
     printf("Should be \"blog/index.html\": \"%s\"\n", to_path(req1));
@@ -66,6 +81,5 @@ int main() {
     //    Hint: `strlen()` returns an integer whose type is not `int` but rather `size_t`
     char req4[] = "GET /blog ";
     printf("Should be \"(null)\": \"%s\"\n", to_path(req4));
-
     return 0;
 }
